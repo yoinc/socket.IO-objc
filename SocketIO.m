@@ -417,7 +417,7 @@ NSString* const SocketIOException = @"SocketIOException";
 
 - (void) onData:(NSString *)data
 {
-    DEBUGLOG(@"onData %@, data);
+    DEBUGLOG(@"onData %@", data);
 
     // data arrived -> reset timeout
     [self setTimeout];

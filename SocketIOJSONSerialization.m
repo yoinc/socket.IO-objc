@@ -44,29 +44,29 @@ extern NSString * const SocketIOException;
 
 + (id) objectFromJSONData:(NSData *)data error:(NSError **)error {
     Class serializer;
-    
-    // try SBJson first
-    serializer = NSClassFromString(@"SBJsonParser");
-    if (serializer) {
-        id parser;
-        id object;
-        
-        parser = [[serializer alloc] init];
-        object = [parser objectWithData:data];
-        
-        return object;
-    }
-    
-    // try Foundation's JSON coder, available in OS X 10.7/iOS 5.0
+
+    // try Foundation's JSON coder first, available in OS X 10.7/iOS 5.0
     serializer = NSClassFromString(@"NSJSONSerialization");
     if (serializer) {
         return [serializer JSONObjectWithData:data options:0 error:error];
     }
     
-    // lastly, try JSONKit
+    // next, try JSONKit
     serializer = NSClassFromString(@"JSONDecoder");
     if (serializer) {
         return [[serializer decoder] objectWithData:data];
+    }
+
+    // try SBJson last
+    serializer = NSClassFromString(@"SBJsonParser");
+    if (serializer) {
+        id parser;
+        id object;
+
+        parser = [[serializer alloc] init];
+        object = [parser objectWithData:data];
+
+        return object;
     }
     
     // unable to find a suitable JSON deseralizer
@@ -80,30 +80,28 @@ extern NSString * const SocketIOException;
     NSString *jsonString;
     
     jsonString = nil;
-    serializer = NSClassFromString(@"SBJsonWriter");
-    if (serializer) {
-        id writer;
-        
-        writer = [[serializer alloc] init];
-        jsonString = [writer stringWithObject:object];
-        
-        return jsonString;
-    }
-    
+
     serializer = NSClassFromString(@"NSJSONSerialization");
     if (serializer) {
         NSData *data;
-        
         data = [serializer dataWithJSONObject:object options:0 error:error];
-        
         jsonString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        
         return jsonString;
     }
-    
-    // lastly, try JSONKit
+
     if ([object respondsToSelector:@selector(JSONString)]) {
         return [object JSONString];
+    }
+
+    // lastly, try SBJson
+    serializer = NSClassFromString(@"SBJsonWriter");
+    if (serializer) {
+        id writer;
+
+        writer = [[serializer alloc] init];
+        jsonString = [writer stringWithObject:object];
+
+        return jsonString;
     }
     
     // unable to find a suitable JSON seralizer

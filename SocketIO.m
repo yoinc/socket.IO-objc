@@ -113,9 +113,6 @@ NSString* const SocketIOException = @"SocketIOException";
 
         // create a query parameters string
         NSMutableString *query = [[NSMutableString alloc] initWithString:@""];
-        [params enumerateKeysAndObjectsUsingBlock: ^(id key, id value, BOOL *stop) {
-            [query appendFormat:@"&%@=%@", key, value];
-        }];
 
         // do handshake via HTTP request
         NSString *s;
@@ -134,9 +131,12 @@ NSString* const SocketIOException = @"SocketIOException";
 
 
         // make a request
-        NSURLRequest *request = [NSURLRequest requestWithURL:url
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
                                                  cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData
                                              timeoutInterval:10.0];
+        [params enumerateKeysAndObjectsUsingBlock: ^(id key, id value, BOOL *stop) {
+            [request addValue:value forHTTPHeaderField:key];
+        }];
 
         _handshake = [NSURLConnection connectionWithRequest:request
                                                    delegate:self];

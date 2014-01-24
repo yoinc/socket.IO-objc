@@ -162,9 +162,9 @@ NSString* const SocketIOException = @"SocketIOException";
     // Kill the timer; after disconnect is called, the timer might be the only
     // thing left holding a ref to us, and then we'll crash as soon as we
     // kill the timer (say, on the next onData).
-    if (_timeout != nil) {
-        [_timeout invalidate];
-        _timeout = nil;
+    if (_timeout) {
+        dispatch_source_cancel(_timeout);
+        _timeout = NULL;
     }
 
     if (_isConnected) {

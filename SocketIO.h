@@ -1,6 +1,6 @@
 //
 //  SocketIO.h
-//  v0.3.2 ARC
+//  v0.4.1 ARC
 //
 //  based on 
 //  socketio-cocoa https://github.com/fpotter/socketio-cocoa
@@ -67,7 +67,7 @@ typedef enum {
     NSString *_endpoint;
     NSDictionary *_params;
     
-    __unsafe_unretained id<SocketIODelegate> _delegate;
+    __weak id<SocketIODelegate> _delegate;
     
     NSObject <SocketIOTransport> *_transport;
     
@@ -79,7 +79,7 @@ typedef enum {
     
     // heartbeat
     NSTimeInterval _heartbeatTimeout;
-    NSTimer *_timeout;
+    dispatch_source_t _timeout;
     
     NSMutableArray *_queue;
     
@@ -89,6 +89,9 @@ typedef enum {
     
     // http request
     NSMutableData *_httpRequestData;
+    
+    // get all arguments from ack? (https://github.com/pkyeck/socket.IO-objc/pull/85)
+    BOOL _returnAllDataFromAck;
 }
 
 @property (nonatomic, readonly) NSString *host;
@@ -97,13 +100,17 @@ typedef enum {
 @property (nonatomic, readonly) NSTimeInterval heartbeatTimeout;
 @property (nonatomic) BOOL useSecure;
 @property (nonatomic, readonly) BOOL isConnected, isConnecting;
-@property (nonatomic, unsafe_unretained) id<SocketIODelegate> delegate;
+@property (nonatomic, weak) id<SocketIODelegate> delegate;
+@property (nonatomic) BOOL returnAllDataFromAck;
 
 - (id) initWithDelegate:(id<SocketIODelegate>)delegate;
 - (void) connectToHost:(NSString *)host onPort:(NSInteger)port;
 - (void) connectToHost:(NSString *)host onPort:(NSInteger)port withParams:(NSDictionary *)params;
 - (void) connectToHost:(NSString *)host onPort:(NSInteger)port withParams:(NSDictionary *)params withNamespace:(NSString *)endpoint;
+- (void) connectToHost:(NSString *)host onPort:(NSInteger)port withParams:(NSDictionary *)params withNamespace:(NSString *)endpoint withConnectionTimeout: (NSTimeInterval) connectionTimeout;
+
 - (void) disconnect;
+- (void) disconnectForced;
 
 - (void) sendMessage:(NSString *)data;
 - (void) sendMessage:(NSString *)data withAcknowledge:(SocketIOCallback)function;
@@ -112,5 +119,7 @@ typedef enum {
 - (void) sendEvent:(NSString *)eventName withData:(id)data;
 - (void) sendEvent:(NSString *)eventName withData:(id)data andAcknowledge:(SocketIOCallback)function;
 - (void) sendAcknowledgement:(NSString*)pId withArgs:(NSArray *)data;
+
+- (void) setResourceName:(NSString *)name;
 
 @end
